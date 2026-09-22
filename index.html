@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A Tiny Game For You 💗</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:linear-gradient(135deg,#fff1f7,#f5efff);color:#33283a;min-height:100vh;display:grid;place-items:center;padding:20px}
+.game{width:min(620px,100%);background:#ffffffdd;border:1px solid #f0ddea;border-radius:28px;padding:28px;box-shadow:0 18px 60px #8d5a7a22;text-align:center}
+h1{margin:4px 0 8px;font-size:30px}.sub{color:#766878;margin-bottom:22px}
+.screen{display:none}.screen.active{display:block}
+.heart{font-size:64px;animation:pulse 1.4s infinite}.emoji{font-size:44px}
+button{border:0;border-radius:16px;padding:13px 18px;font-size:16px;font-weight:700;cursor:pointer;background:#e85d9e;color:white;margin:7px;min-width:130px}
+button.alt{background:#f2e7ef;color:#5d4054}button:focus{outline:3px solid #f5b8d5;outline-offset:2px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px auto;max-width:420px}
+.tile{height:92px;background:#fff5fa;border:2px solid #f4d8e6;border-radius:18px;font-size:30px;color:#c45c8e}
+.tile.matched{background:#f8e5ef;border-color:#e8a9c8}
+.message{min-height:28px;font-weight:650;margin:12px}
+.progress{height:8px;background:#f0e4ec;border-radius:99px;overflow:hidden;margin:15px 0}.bar{height:100%;width:0;background:#e85d9e;transition:.3s}
+.small{font-size:13px;color:#8b7887}.love{font-size:21px;line-height:1.55}
+@keyframes pulse{50%{transform:scale(1.1)}} 
+</style>
+</head>
+<body>
+<main class="game">
+  <section id="start" class="screen active">
+    <div class="heart">💗</div>
+    <h1>A tiny game for you</h1>
+    <p class="love">Good morning, beautiful. ☀️❤️<br><br>
+You are so precious to me, and I feel incredibly lucky that I found you.<br>
+I hope today is a little kinder to you and gives you plenty of reasons to smile. 🌷<br><br>
+Now, before you start your day… I made you something tiny. 💕</p>
+    <button onclick="startGame()">Start the smile mission ✨</button>
+  </section>
+
+  <section id="game" class="screen">
+    <div class="emoji">🌷</div>
+    <h1>Find the matching hearts</h1>
+    <p class="sub">Match all 6 pairs. Take your time — you're not being timed. 💕</p>
+    <div class="progress"><div class="bar" id="bar"></div></div>
+    <div class="grid" id="grid"></div>
+    <div class="message" id="msg">You got this! 🌸</div>
+  </section>
+
+  <section id="win" class="screen">
+    <div class="heart">🥰</div>
+    <h1>Mission accomplished!</h1>
+    <p class="love">You found all the hearts.<br><br>
+    Official reward: one giant virtual hug 🤗<br>
+    and a reminder that someone is very lucky to have you. ❤️</p>
+    <button onclick="show('secret')">One more thing… 👀</button>
+  </section>
+
+  <section id="secret" class="screen">
+    <div class="emoji">💌</div>
+    <h1>Secret message unlocked</h1>
+    <p class="love">Whatever is stressing you right now,<br>
+    you don't have to solve everything today.<br><br>
+    Breathe. Drink some water. Smile for 5 seconds.<br>
+    And remember: <strong>you are loved more than you realise. ❤️</strong></p>
+    <button onclick="confetti()">Send me a smile 😊</button>
+    <p id="smile" class="message"></p>
+    <button class="alt" onclick="show('start')">Play again</button>
+  </section>
+</main>
+<script>
+const symbols=['💗','🌸','🦋','🍓','🌙','⭐'];
+let first=null, lock=false, found=0;
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}
+function startGame(){
+  show('game'); first=null;lock=false;found=0;
+  const cards=[...symbols,...symbols].sort(()=>Math.random()-.5);
+  const grid=document.getElementById('grid');grid.innerHTML='';
+  cards.forEach((x,i)=>{
+    const b=document.createElement('button');b.className='tile';b.textContent='?';b.dataset.v=x;b.dataset.i=i;
+    b.onclick=()=>flip(b);grid.appendChild(b);
+  });
+  update();
+}
+function flip(b){
+  if(lock||b.classList.contains('matched')||b===first)return;
+  b.textContent=b.dataset.v;
+  if(!first){first=b;return}
+  if(first.dataset.v===b.dataset.v){
+    first.classList.add('matched');b.classList.add('matched');found++;first=null;update();
+    if(found===symbols.length)setTimeout(()=>show('win'),500);
+  }else{
+    lock=true;const a=first;first=null;
+    setTimeout(()=>{a.textContent='?';b.textContent='?';lock=false},650);
+  }
+}
+function update(){document.getElementById('bar').style.width=(found/symbols.length*100)+'%'}
+function confetti(){
+  const el=document.getElementById('smile');el.textContent='Yesss! 😊 That smile was the whole point. 💕';
+  for(let i=0;i<18;i++){
+    const s=document.createElement('span');s.textContent=['💗','✨','🌸','💕'][i%4];
+    s.style.position='fixed';s.style.left=Math.random()*100+'vw';s.style.top='45vh';s.style.fontSize=(18+Math.random()*22)+'px';
+    s.style.transition='transform 1.2s, opacity 1.2s';document.body.appendChild(s);
+    requestAnimationFrame(()=>{s.style.transform=`translate(${(Math.random()-.5)*260}px,${-100-Math.random()*300}px) rotate(${Math.random()*360}deg)`;s.style.opacity='0'});
+    setTimeout(()=>s.remove(),1300);
+  }
+}
+</script>
+</body>
+</html>
